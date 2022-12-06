@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        /*캔버스*/
+        canvas {
+            border: 1px solid #881e1e;
+            background-color: #d47979;
+        }
+    </style>
+</head>
+
+<body onload="startGame()">
+
+    <script>
+        var myGamePiece;
+
+        function startGame() {
+            myGamePiece = new component(30, 30, "#29745b", 225, 225);
+            myGameArea.start();
+        }
+        // 캔버스와 사각형 그림
+        var myGameArea = {
+            // <canvas>요소가 캔버스 그림
+            canvas: document.createElement("canvas"),
+            start: function () {
+                this.canvas.width = 480;
+                this.canvas.height = 270;
+                this.context = this.canvas.getContext("2d");
+                document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+                this.frameNo = 0;
+                //업데이트 ex) 영화 프레임 => 꼭 필요!(사각형 유지)
+                this.interval = setInterval(updateGameArea, 20); //20밀리초 = 초당 50회
+                // 키보드 이벤트(키를 누를 때)
+                window.addEventListener('keydown', function (e) {
+                    e.preventDefault();
+                    myGameArea.keys = (myGameArea.keys || []);
+                    myGameArea.keys[e.keyCode] = (e.type == "keydown");
+                })
+                // 키보드 이벤트(키를 놓을 때)
+                window.addEventListener('keyup', function (e) {
+                    myGameArea.keys[e.keyCode] = (e.type == "keydown");
+                })
+            },
+            // 사각형이 장애물 부딪히면 멈추게.
+            stop: function () {
+                clearInterval(this.interval);
+            },
+            // 사각형 지우기 (업데이트) ex) 영화 프레임 => 꼭 필요!(사각형 유지)
+            clear: function () {
+                this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+        } // 따라서 [업데이트]는 구성요소가 초당 50회 그려지고 지워짐.
+
+        // 개체 생성자 = 컴포넌트
+        // 구성요소에는 모양과 움직임을 제어하는 속성과 메소드가 있다.
+        function component(width, height, color, x, y, type) {
+
+            this.type = type;
+            this.width = width;
+            this.height = height;
+            this.speedX = 0;
+            this.speedY = 0;
+            this.x = x;
+            this.y = y;
+            this.update = function () {
+                ctx = myGameArea.context;
+                ctx.save(); // 캔버스의 전체 상태 저장
+                ctx.translate(this.x, this.y);
+                ctx.fillStyle = color; // 도형 내부에 사용할 색상
+                // 직사각형 그리기
+                // fillRect(x, y, width, height) ==> 시작점:(x, y), 크기:width, height
+                ctx.fillRect(this.width / -2, this.height / -2, this.width, this.height);
+                ctx.restore(); // 저장된 상태 복원
+            }
+            // 키보드로 움직이게 구현
+            this.newPos = function () {
+                this.x += this.speedX;
+                this.y += this.speedY;
+            }
+        }
+
+        function updateGameArea() {
+            myGameArea.clear();
+            myGamePiece.speedX = 0; // 그 자리에 멈춤.
+            myGamePiece.speedY = 0; // 그 자리에 멈춤.
+            if (myGameArea.keys && myGameArea.keys[37]) { myGamePiece.speedX = -1; } // 왼쪽
+            if (myGameArea.keys && myGameArea.keys[39]) { myGamePiece.speedX = 1; } // 오른쪽
+            if (myGameArea.keys && myGameArea.keys[38]) { myGamePiece.speedY = -1; } // 위쪽
+            if (myGameArea.keys && myGameArea.keys[40]) { myGamePiece.speedY = +1; } // 아래쪽
+            myGamePiece.newPos();
+            myGamePiece.update();
+        }
+
+
+
+    </script>
+
+    <p>Make sure the gamearea has focus, and use the arrow keys to move the red square around.</p>
+
+</body>
+
+</html>
